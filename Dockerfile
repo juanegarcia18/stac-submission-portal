@@ -18,7 +18,8 @@ COPY requirements.txt .
 RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY backend/ backend/
+COPY frontend/ frontend/
 
 RUN useradd --create-home --shell /usr/sbin/nologin naccapp \
     && mkdir -p /var/lib/nacc-pipeline/jobs /var/lib/nacc-pipeline/runtime \

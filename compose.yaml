@@ -1,0 +1,24 @@
+name: stac-submission-portal
+services:
+  portal:
+    image: stac-submission-portal
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stac-submission-portal
+    restart: unless-stopped
+    env_file: "${STAC_PORTAL_ENV_FILE:-stac_submission_portal.env}"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - state:/var/lib/nacc-pipeline
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json, urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3))['status'] == 'ok'"]
+      interval: 5s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+volumes:
+  state:
+    external: true
+    name: stac_submission_portal_state

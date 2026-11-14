@@ -70,8 +70,26 @@ The future backend path requires enrollment uploads and NACCID extraction to res
 
 ## Deployment
 
-See [Docker deployment](docs/deploy_with_docker.md) for Waitress, trusted proxy
-authentication, integration settings, and persistent job storage.
+Install Docker Engine and the Docker Compose plugin. Copy
+`stac_submission_portal.env.example` to `stac_submission_portal.env` and
+fill in the REDCap and Flywheel settings and a stable `NACC_FLASK_SECRET`.
+For local sandbox use, explicitly set `NACC_DEPLOYMENT_ENV=development`,
+`NACC_ENABLE_DEV_AUTH=1`, `FW_GROUP=south-texas`, and `FW_PROJECT=sandbox-form`.
+
+Run `./stac_submission_portal_deploy.sh` or pass an alternate environment
+file as its only argument. The script builds and starts Waitress and checks
+health before reporting the URL. Before redeploying, pause portal use and
+upstream traffic until the update completes. The job-state check is a snapshot.
+
+- Open `http://127.0.0.1:8000`.
+- Check health at `http://127.0.0.1:8000/healthz`.
+- View logs with `docker logs stac-submission-portal`.
+- Stop with `docker stop stac-submission-portal`. This retains
+  `stac_submission_portal_state`.
+
+Infrastructure manages production DNS, HTTPS, credentials, persistent storage,
+and trusted proxy identity. Production requires trusted authentication with
+development authentication disabled.
 
 ## Tests
 
