@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STAC Submission Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='application.css') }}">
+</head>
+<body>
+  <main class="page" data-job-id="{{ job.job_id }}" data-csrf-token="{{ csrf_token }}">
+    <header class="page-header">
+      <a href="{{ url_for('workflow_routes.show_workflow_selection') }}">All workflows</a>
+      <h1>{{ job.workflow|replace('_', ' ')|title }}</h1>
+      <p>Status: <strong id="job-status">{{ job.status }}</strong></p>
+    </header>
+
+    <p id="job-error" class="alert{% if not job.error %} hidden{% endif %}">{{ job.error }}</p>
+
+    <section class="panel" id="preparation-panel">
+      <h2>Preparation</h2>
+      <div id="preparation-content"></div>
+    </section>
+
+    <section class="panel hidden" id="review-panel">
+      <h2>Review Files</h2>
+      <div id="review-content"></div>
+    </section>
+
+    <section class="panel hidden" id="commit-panel">
+      <h2>Commit Result</h2>
+      <div id="commit-content"></div>
+    </section>
+
+    <div id="upload-destination"></div>
+    <section class="actions" id="job-actions"></section>
+  </main>
+  <script>
+    const root = document.querySelector('[data-job-id]');
+    if (root) {
+      const jobId = root.dataset.jobId;
+      const csrfToken = root.dataset.csrfToken;
+      const initialJob = {{ public_job|tojson }};
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
+      }
+
+      function artifactUrl(artifact) {
+        return `/jobs/${jobId}/files/${encodeURIComponent(artifact.id)}`;
+      }
+
+      function renderPreparation(job) {
+        const preparation = job.preparation || {};
+        const summaries = preparation.module_summaries || [];
+        let html = `<p>Prepared records: ${escapeHtml(preparation.prepared_records || 0)}</p>`;
+        if (summaries.length) {
+          html += '<table class="summary-table"><thead><tr><th>Module</th><th>Requested</th><th>Prepared</th><th>Status</th><th>Review</th></tr></thead><tbody>';
+          html += summaries.map((item) => {
+            const artifact = item.artifact ? `<a href="${artifactUrl(item.artifact)}">${escapeHtml(item.artifact.name)}</a>` : '';
+            const requested = item.requested_records === null || item.requested_records === undefined ? '' : item.requested_records;
+            return `<tr><td>${escapeHtml(item.module)}</td><td>${escapeHtml(requested)}</td><td>${escapeHtml(item.prepared_records)}</td><td>${escapeHtml(item.status)}</td><td>${artifact}</td></tr>`;
+          }).join('');
+          html += '</tbody></table>';
+          const findings = summaries.flatMap((item) => item.findings || []);
+          if (findings.length) {
+            html += `<ul>${findings.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+          }
+        }
+        const warnings = preparation.warnings || [];
+        if (warnings.length) {
+          html += `<ul>${warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+        }
+        document.getElementById('preparation-content').innerHTML = html;
+      }
+
+      function renderReviewFiles(job) {
+        const linked = new Set((job.preparation?.module_summaries || []).map((item) => item.artifact?.id));
+        const artifacts = (job.artifacts || []).filter((item) => !linked.has(item.id));
+        const panel = document.getElementById('review-panel');
+        panel.classList.toggle('hidden', artifacts.length === 0);
+        document.getElementById('review-content').innerHTML = artifacts.length
+          ? `<ul>${artifacts.map((item) => `<li><a href="${artifactUrl(item)}">${escapeHtml(item.name)}</a></li>`).join('')}</ul>`
+          : '';
+      }
+
+      function renderCommit(job) {
+        const commit = job.commit || {};
+        const reconcile = commit.requires_reconciliation || job.status === 'reconciliation_required';
+        const hasCommit = Object.keys(commit).length > 0 || reconcile;
+        document.getElementById('commit-panel').classList.toggle('hidden', !hasCommit);
+        if (!hasCommit) return;
+        const isImport = job.workflow === 'naccid_import';
+        const operation = isImport ? 'NACCID import' : 'Flywheel upload';
+        const labels = new Map([
+          ['success', 'completed successfully'], ['partial', 'partially completed'],
+          ['failure', 'failed'], ['uncertain', 'outcome uncertain'], ['no_data', 'had nothing to submit'],
+        ]);
+        let html = `<h3>${operation} ${labels.get(commit.status) || 'outcome unavailable'}</h3>`;
+        if (isImport && 'submitted' in commit) {
+          html += `<p>Submitted: ${escapeHtml(commit.submitted)} · Verified: ${escapeHtml(commit.verified)} · Skipped: ${escapeHtml(commit.skipped)} · Failed: ${escapeHtml(commit.failed)}</p>`;
+        } else if (!isImport && 'succeeded' in commit) {
+          html += `<p>${escapeHtml(commit.succeeded)} of ${escapeHtml(commit.attempted)} files uploaded and verified. Failed: ${escapeHtml(commit.failed)} · Uncertain: ${escapeHtml(commit.uncertain)}</p>`;
+          if (commit.results?.length) {
+            html += '<table class="summary-table"><thead><tr><th>File</th><th>Destination</th><th>Result</th></tr></thead><tbody>';
+            const results = new Map([['success', 'Success'], ['failure', 'Failed'], ['uncertain', 'Uncertain']]);
+            html += commit.results.map((item) => {
+              const destination = item.destination?.includes('/') ? item.destination : 'Not recorded for this job';
+              return `<tr><td>${escapeHtml(item.file_name)}</td><td>${escapeHtml(destination)}</td><td>${results.get(item.status) || 'Unknown'}</td></tr>`;
+            }).join('');
+            html += '</tbody></table>';
+          }
+        }
+        if (reconcile) {
+          html += isImport
+            ? '<p class="alert">REDCap may have received records. Verify the import in REDCap before taking further action.</p>'
+            : '<p class="alert">Flywheel may have received the file. Verify the destination before taking further action.</p>';
+        }
+        document.getElementById('commit-content').innerHTML = html;
+      }
+
+      function formHtml(action, label, secondary, confirmText) {
+        const confirmAttr = confirmText ? ` data-confirm="${escapeHtml(confirmText)}" onsubmit="return confirm(this.dataset.confirm);"` : '';
+        const classAttr = secondary ? ' class="secondary"' : '';
+        return `<form action="${action}" method="post"${confirmAttr}><input type="hidden" name="csrf_token" value="${escapeHtml(csrfToken)}"><button${classAttr} type="submit">${label}</button></form>`;
+      }
+
+      function renderActions(job) {
+        let html = '';
+        const destination = job.upload_destination;
+        const flywheel = job.workflow === 'udsv4_submission' || job.workflow === 'enrollment_submission';
+        const labels = new Map([
+          ['ingest-form', 'ADRC Portal'], ['sandbox-form', 'ADRC Portal - SANDBOX'],
+          ['ingest-enrollment', 'Enrollment/Transfer Status'],
+          ['sandbox-enrollment', 'Enrollment/Transfer Status - SANDBOX'],
+        ]);
+        const label = destination && (labels.get(destination.split('/').pop()) || destination);
+        document.getElementById('upload-destination').innerHTML = flywheel && job.status === 'awaiting_review'
+          ? (label
+            ? `<div><strong>Upload Destination</strong><p>Uploading to ${escapeHtml(label)}</p></div>`
+            : '<p>Upload destination was not recorded. Prepare a new job.</p>')
+          : '';
+        if (job.can_approve && (!flywheel || label)) {
+          const prompt = label
+            ? `Confirm upload to ${label}? This will submit the reviewed files to Flywheel.`
+            : 'Commit this reviewed job to the external system? This action cannot be undone here.';
+          html += formHtml(`/jobs/${jobId}/approve`, 'Approve And Commit', false, prompt);
+        }
+        if (job.can_cancel) {
+          html += formHtml(`/jobs/${jobId}/cancel`, 'Cancel Job', true, '');
+        }
+        document.getElementById('job-actions').innerHTML = html;
+      }
+
+      function renderJob(job) {
+        document.getElementById('job-status').textContent = job.status;
+        const error = document.getElementById('job-error');
+        error.textContent = job.error || '';
+        error.classList.toggle('hidden', !job.error);
+        renderPreparation(job);
+        renderReviewFiles(job);
+        renderCommit(job);
+        renderActions(job);
+      }
+
+      renderJob(initialJob);
+      if (!initialJob.terminal) {
+        const poller = setInterval(async () => {
+          const response = await fetch(`/api/jobs/${jobId}`);
+          if (!response.ok) return;
+          const data = await response.json();
+          renderJob(data);
+          if (data.terminal) {
+            clearInterval(poller);
+          }
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>

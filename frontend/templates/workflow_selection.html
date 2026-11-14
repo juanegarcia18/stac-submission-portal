@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STAC Submission Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='application.css') }}">
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <h1>STAC Submission Portal</h1>
+      <p>Prepare, review, approve, and commit submission jobs.</p>
+    </header>
+
+    {% if error %}<p class="alert">{{ error }}</p>{% endif %}
+
+    <section class="workflow-grid" aria-label="Available workflows">
+      <form class="panel" action="{{ url_for('workflow_routes.create_udsv4_job') }}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <h2>UDSv4 Submission</h2>
+        <label for="filter_csv">Participant filter CSV</label>
+        <input id="filter_csv" name="filter_csv" type="file" accept=".csv" required>
+        <fieldset>
+          <legend>Forms</legend>
+          {% for form in forms %}
+            <label class="check"><input type="checkbox" name="forms" value="{{ form }}"> {{ form }}</label>
+          {% endfor %}
+        </fieldset>
+        <button type="submit">Start Preparation</button>
+      </form>
+
+      <form class="panel" action="{{ url_for('workflow_routes.create_enrollment_job') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <h2>Enrollment Submission</h2>
+        <p>Prepare eligible enrollment records for Flywheel review.</p>
+        <button type="submit">Start Preparation</button>
+      </form>
+
+      <form class="panel" action="{{ url_for('workflow_routes.create_naccid_job') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <h2>NACCID Import</h2>
+        <p>Prepare accepted NACCIDs for REDCap review.</p>
+        <button type="submit">Start Preparation</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

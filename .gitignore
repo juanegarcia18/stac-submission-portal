@@ -1,0 +1,125 @@
+# ============================================================
+#  Environment Files
+# ============================================================
+# Ignore real envs but keep the example
+*.env
+.env.*
+!.env.example
+**/fw_config.env
+udsv4/udsv4.env
+
+# ============================================================
+#  Data / Outputs
+# ============================================================
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.dta
+*.sav
+*.json
+*.xml
+*.zip
+*.tar
+*.gz
+
+# Generated uploads and archives
+udsv4/**/uploads/
+udsv4/archive/
+Subject_Enroll/**/uploads/
+Monthly_NACC_Subs/main_files/
+Monthly_NACC_Subs/archive/
+Submission_pipeline/archive/
+**/uploads/
+reports/
+archive/
+
+# Temporary and backup files
+*.tmp
+*.bak
+*~
+*.swp
+
+# ============================================================
+#  Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+*.spec
+.venv/
+stac_submission_portal.venv/
+/stac_submission_portal.env
+venv/
+env/
+ENV/
+
+# MyPy / Pytest / Coverage / Ruff
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ============================================================
+#  Node / JavaScript
+# ============================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.vite/
+.vite-ssr/
+*.tsbuildinfo
+dist/
+build/
+public/build/
+coverage/
+.next/
+out/
+.cjs/
+.eslintcache
+
+# ============================================================
+#  Shell / Bash
+# ============================================================
+*.log
+*.tmp
+
+# ============================================================
+#  IDE / OS Files
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ============================================================
+#  Miscellaneous
+# ============================================================
+*.bak
+*.old
+*.ori
+settings.json
+.claude/
+
+.DS_Storenotebooks/
+# Runtime locks and recovery journals
+.runtime/

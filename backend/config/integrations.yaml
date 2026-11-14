@@ -1,0 +1,63 @@
+redcap:
+  connections:
+    udsv4:
+      api_url_env: BASE_URL
+      token_env: UDSV4_TOKEN
+
+  reports:
+    uds:
+      connection: udsv4
+      report_id_env: REPORT_ID_UDS
+    m1:
+      connection: udsv4
+      report_id_env: REPORT_ID_M1
+    cls:
+      connection: udsv4
+      report_id_env: REPORT_ID_CLS
+    ftd:
+      connection: udsv4
+      report_id_env: REPORT_ID_FTD
+    lbd:
+      connection: udsv4
+      report_id_env: REPORT_ID_LBD
+    enroll:
+      connection: udsv4
+      report_id_env: ENROLL_ID
+    np:
+      connection: udsv4
+      report_id_env: REPORT_ID_NPV11
+    enroll_checker:
+      connection: udsv4
+      report_id_env: ENROLL_SUBS
+
+  naccid_import:
+    connection: udsv4
+    event: enrollment_id_arm_1
+    instrument: participant_enrollment_transfer_form
+    columns:
+      - ptid
+      - redcap_event_name
+      - enrl_ptid
+      - enrl_accepted_date
+      - enrl_naccid
+    fields:
+      - ptid
+      - enrl_ptid
+      - enrl_accepted_date
+      - enrl_naccid
+
+flywheel:
+  auth:
+    token_env: FLYWHEEL_TOKEN
+    group_env: FW_GROUP
+  destinations:
+    form_submissions:
+      project_env: FW_PROJECT
+      required: true
+    enrollment_submissions:
+      # Enrollment files must go to the enrollment project, not the forms project.
+      project_env: FW_ENROLL
+      required: true
+    naccid_extraction:
+      project_env: FW_ENROLL
+      required: true

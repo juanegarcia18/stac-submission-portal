@@ -1,0 +1,147 @@
+forms:
+  UDS:
+    enabled: true
+    api_form: uds
+    matching:
+      mode: ptid_visit
+      filter_ptid_col: ptid
+      filter_visitnum_col: visitnum
+      report_ptid_cols:
+        - ptid
+        - enrl_ptid
+      report_visitnum_cols:
+        - visitnum
+    prefix: uds
+    slug: uds
+    output_rename: {}
+    drop_columns:
+      - redcap_event_name
+    final_output_drop_columns: []
+
+  MLST:
+    enabled: true
+    api_form: m1
+    matching:
+      mode: ptid_visit
+      filter_ptid_col: ptid
+      filter_visitnum_col: mlst_visitnum
+      report_ptid_cols:
+        - mlst_ptid
+        - ptid
+      report_visitnum_cols:
+        - mlst_visitnum
+    prefix: mlst
+    slug: mlst
+    output_rename:
+      mlst_ptid: ptid
+      mlst_visitnum: visitnum
+      mlst_packet: packet
+      mlst_formver: formver
+      mlst_adcid: adcid
+      mlst_visitdate: visitdate
+      mlst_initials: initials
+    drop_columns: []
+    # MLST needs a visit number for matching, but the NACC MLST CSV omits it.
+    final_output_drop_columns:
+      - visitnum
+
+  CLS:
+    enabled: true
+    api_form: cls
+    matching:
+      mode: ptid_visit
+      filter_ptid_col: ptid
+      filter_visitnum_col: cls_visitnum
+      report_ptid_cols:
+        - cls_ptid
+        - ptid
+      report_visitnum_cols:
+        - cls_visitnum
+    prefix: cls
+    slug: cls
+    output_rename:
+      cls_ptid: ptid
+      cls_visitnum: visitnum
+      cls_packet: packet
+      cls_formver: formver
+      cls_adcid: adcid
+      cls_visitdate: visitdate
+      cls_initials: initials
+    drop_columns: []
+    final_output_drop_columns: []
+
+  FTLD:
+    enabled: true
+    api_form: ftd
+    matching:
+      mode: ptid_visit
+      filter_ptid_col: ptid
+      filter_visitnum_col: ftd_visitnum
+      report_ptid_cols:
+        - ftd_ptid
+        - ptid
+      report_visitnum_cols:
+        - ftd_visitnum
+    prefix: ftd
+    slug: ftld
+    output_rename:
+      ftd_ptid: ptid
+      ftd_visitnum: visitnum
+      ftd_packet: packet
+      ftd_formver: formver
+      ftd_adcid: adcid
+      ftd_visitdate: visitdate
+      ftd_initials: initials
+    drop_columns: []
+    final_output_drop_columns: []
+
+  LBD:
+    enabled: true
+    api_form: lbd
+    matching:
+      mode: ptid_visit
+      filter_ptid_col: ptid
+      filter_visitnum_col: lbd_visitnum
+      report_ptid_cols:
+        - lbd_ptid
+        - ptid
+      report_visitnum_cols:
+        - lbd_visitnum
+    prefix: lbd
+    slug: lbd
+    output_rename:
+      lbd_ptid: ptid
+      lbd_visitnum: visitnum
+      lbd_packet: packet
+      lbd_formver: formver
+      lbd_adcid: adcid
+      lbd_visitdate: visitdate
+      lbd_initials: initials
+    drop_columns: []
+    final_output_drop_columns: []
+
+  NP:
+    enabled: true
+    api_form: np
+    matching:
+      # NP is a one-time submission and is matched by PTID only.
+      mode: ptid_only
+      filter_ptid_col: ptid
+      filter_visitnum_col: null
+      report_ptid_cols:
+        - np_ptid
+        - ptid
+      report_visitnum_cols: []
+    submit_flag_col: npv11_submit
+    submit_flag_value: "1"
+    prefix: np
+    slug: np
+    output_rename:
+      np_ptid: ptid
+      np_formver: formver
+      np_adcid: adcid
+      np_packet: packet
+    drop_columns:
+      - np_loc_today
+      - np_initials
+    final_output_drop_columns: []
