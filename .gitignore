@@ -6,7 +6,6 @@
 .env.*
 !.env.example
 **/fw_config.env
-udsv4/udsv4.env
 
 # ============================================================
 #  Data / Outputs
@@ -26,7 +25,6 @@ udsv4/udsv4.env
 # Generated uploads and archives
 udsv4/**/uploads/
 udsv4/archive/
-Subject_Enroll/**/uploads/
 Monthly_NACC_Subs/main_files/
 Monthly_NACC_Subs/archive/
 Submission_pipeline/archive/
